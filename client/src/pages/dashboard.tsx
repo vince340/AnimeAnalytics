@@ -15,12 +15,34 @@ import TrafficSources from '@/components/analytics/traffic-sources';
 import PopularPages from '@/components/analytics/popular-pages';
 import DeviceMetrics from '@/components/analytics/device-metrics';
 import DateRangePicker from '@/components/analytics/date-range-picker';
+import ComparisonView from '@/components/analytics/comparison-view';
+import AlertsCenter from '@/components/analytics/alerts-center';
+import ClickHeatmap from '@/components/analytics/click-heatmap';
+import UserFlow from '@/components/analytics/user-flow';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, ChevronDown } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  exportOverviewData,
+  exportVisitorsData,
+  exportGeographyData,
+  exportTrafficSourcesData,
+  exportPagesData,
+  exportDeviceData,
+  exportFullReport
+} from '@/utils/export-utils';
 
 export default function Dashboard() {
   // State for chart interval
   const [chartInterval, setChartInterval] = useState<'day' | 'week' | 'month'>('week');
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Get date range from the custom hook
   const { 
@@ -46,9 +68,56 @@ export default function Dashboard() {
   };
   
   // Handle exporting data
-  const handleExport = () => {
-    // This would handle exporting the data to a CSV or other format
-    alert('Export functionality would be implemented here');
+  const handleExport = (exportType: string) => {
+    switch (exportType) {
+      case 'overview':
+        if (overviewData.data) {
+          exportOverviewData(overviewData.data, startDate, endDate);
+        }
+        break;
+      case 'visitors':
+        if (visitorsData.data) {
+          exportVisitorsData(visitorsData.data, startDate, endDate);
+        }
+        break;
+      case 'geography':
+        if (geographyData.data) {
+          exportGeographyData(geographyData.data, startDate, endDate);
+        }
+        break;
+      case 'traffic':
+        if (trafficSourcesData.data) {
+          exportTrafficSourcesData(trafficSourcesData.data, startDate, endDate);
+        }
+        break;
+      case 'pages':
+        if (popularPagesData.data) {
+          exportPagesData(popularPagesData.data, startDate, endDate);
+        }
+        break;
+      case 'devices':
+        if (deviceData.data) {
+          exportDeviceData(deviceData.data, startDate, endDate);
+        }
+        break;
+      case 'full':
+        if (overviewData.data && visitorsData.data && geographyData.data && 
+            trafficSourcesData.data && popularPagesData.data && deviceData.data) {
+          exportFullReport(
+            overviewData.data,
+            visitorsData.data,
+            geographyData.data,
+            trafficSourcesData.data,
+            popularPagesData.data,
+            deviceData.data,
+            startDate,
+            endDate
+          );
+        }
+        break;
+      default:
+        alert('Select a specific export type');
+    }
   };
 
   return (
@@ -71,55 +140,136 @@ export default function Dashboard() {
               endDate={endDate}
               onRangeChange={handleDateRangeChange}
             />
-            <Button onClick={handleExport} className="flex items-center gap-2">
-              <Download size={16} />
-              Export
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Download size={16} />
+                  Export
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('overview')}>
+                  Overview Metrics
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('visitors')}>
+                  Visitors Data
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('geography')}>
+                  Geography Data
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('traffic')}>
+                  Traffic Sources
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pages')}>
+                  Popular Pages
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('devices')}>
+                  Device Breakdown
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleExport('full')}>
+                  Full Report (All Data)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
       
       {/* Main content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Overview metrics */}
-        <OverviewMetrics 
-          data={overviewData.data} 
-          isLoading={overviewData.isLoading} 
-        />
-        
-        {/* Visitors chart */}
-        <VisitorsChart 
-          data={visitorsData.data} 
-          isLoading={visitorsData.isLoading}
-          interval={chartInterval}
-          onIntervalChange={setChartInterval}
-        />
-        
-        {/* Two-column layout for Geography and Traffic Sources */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <GeographyMap 
-            data={geographyData.data} 
-            isLoading={geographyData.isLoading} 
-          />
-          <TrafficSources 
-            data={trafficSourcesData.data} 
-            isLoading={trafficSourcesData.isLoading} 
-          />
-        </div>
-        
-        {/* Three-column layout for Popular Pages and Device Metrics */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
-            <PopularPages 
-              data={popularPagesData.data} 
-              isLoading={popularPagesData.isLoading} 
+        {/* Main tabs for different dashboard sections */}
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="w-full justify-start border-b pb-px mb-4">
+            <TabsTrigger value="overview" className="mr-2">Overview</TabsTrigger>
+            <TabsTrigger value="behavior" className="mr-2">User Behavior</TabsTrigger>
+            <TabsTrigger value="comparison" className="mr-2">Comparison</TabsTrigger>
+            <TabsTrigger value="alerts" className="mr-2">Alerts</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            {/* Overview metrics */}
+            <OverviewMetrics 
+              data={overviewData.data} 
+              isLoading={overviewData.isLoading} 
             />
-          </div>
-          <DeviceMetrics 
-            data={deviceData.data} 
-            isLoading={deviceData.isLoading} 
-          />
-        </div>
+            
+            {/* Visitors chart */}
+            <VisitorsChart 
+              data={visitorsData.data} 
+              isLoading={visitorsData.isLoading}
+              interval={chartInterval}
+              onIntervalChange={setChartInterval}
+            />
+            
+            {/* Two-column layout for Geography and Traffic Sources */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <GeographyMap 
+                data={geographyData.data} 
+                isLoading={geographyData.isLoading} 
+              />
+              <TrafficSources 
+                data={trafficSourcesData.data} 
+                isLoading={trafficSourcesData.isLoading} 
+              />
+            </div>
+            
+            {/* Three-column layout for Popular Pages and Device Metrics */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div className="lg:col-span-2">
+                <PopularPages 
+                  data={popularPagesData.data} 
+                  isLoading={popularPagesData.isLoading} 
+                />
+              </div>
+              <DeviceMetrics 
+                data={deviceData.data} 
+                isLoading={deviceData.isLoading} 
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="behavior">
+            {/* User Flow Analysis */}
+            <UserFlow />
+            
+            {/* Click Heatmap */}
+            <ClickHeatmap />
+          </TabsContent>
+          
+          <TabsContent value="comparison">
+            {/* Period Comparison */}
+            <ComparisonView 
+              currentStartDate={startDate}
+              currentEndDate={endDate}
+            />
+            
+            {/* Keep some basic metrics in the comparison view too */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <GeographyMap 
+                data={geographyData.data} 
+                isLoading={geographyData.isLoading} 
+              />
+              <TrafficSources 
+                data={trafficSourcesData.data} 
+                isLoading={trafficSourcesData.isLoading} 
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="alerts">
+            {/* Alerts Center */}
+            <AlertsCenter />
+            
+            {/* Keep a condensed overview so users can monitor main metrics */}
+            <OverviewMetrics 
+              data={overviewData.data} 
+              isLoading={overviewData.isLoading} 
+            />
+          </TabsContent>
+        </Tabs>
       </main>
       
       {/* Footer */}
