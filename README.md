@@ -6,6 +6,7 @@ A modern, interactive web analytics dashboard for tracking visitor statistics of
 
 ## Features
 
+### Basic Analytics
 - **Real-time Overview Metrics**: Track unique visitors, page views, bounce rates, and session durations
 - **Interactive Visitors Chart**: Visualize visitor trends with day/week/month interval options
 - **Geography Map**: See where your visitors are coming from with country-based analytics
@@ -13,6 +14,13 @@ A modern, interactive web analytics dashboard for tracking visitor statistics of
 - **Popular Pages Tracking**: Identify your most visited content with detailed metrics
 - **Device Breakdown**: Monitor usage across desktop, mobile, and tablet devices
 - **Customizable Date Ranges**: Filter data by predefined periods or custom date selections
+
+### Advanced Features
+- **Time Period Comparison**: Compare metrics between different time periods (current vs previous, year-over-year)
+- **User Flow Analysis**: Visualize how users navigate through your website with interactive flow diagrams
+- **Click Heatmaps**: See where users are clicking on your pages with visual heatmap overlays
+- **Alerts & Notifications**: Set up custom alerts for traffic spikes, drops, or other important events
+- **Data Export**: Export your analytics data in CSV format for further analysis or reporting
 
 ## Tech Stack
 
@@ -116,9 +124,12 @@ This application can be easily deployed to platforms like Vercel, Netlify, or an
 
 - Integration with actual tracking script for real-time data collection
 - User authentication and multiple website tracking
-- Data export functionality (CSV, PDF)
-- Custom alerts and notifications
-- Additional visualization options
+- Advanced report scheduling (weekly/monthly email reports)
+- AI-powered insights and recommendations
+- Goal tracking and conversion funnels
+- UTM parameter tracking for marketing campaigns
+- A/B testing integration
+- Custom dashboards and reports builder
 
 ## License
 

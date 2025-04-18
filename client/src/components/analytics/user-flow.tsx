@@ -104,29 +104,29 @@ export default function UserFlow() {
     
     // Page nodes for first step
     let i = 0;
-    for (const page in demoUserFlowData.entry) {
-      if (demoUserFlowData.entry.hasOwnProperty(page)) {
-        nodes.push({
-          id: `first_${page}`,
-          label: pageNames[page] || page,
-          value: demoUserFlowData.entry[page],
-          x: 300,
-          y: 120 + i * 150,
-          width: 130,
-          height: 70
-        });
-        i++;
-      }
-    }
+    Object.entries(demoUserFlowData.entry).forEach(([page, value]) => {
+      nodes.push({
+        id: `first_${page}`,
+        label: pageNames[page as keyof typeof pageNames] || page,
+        value: value,
+        x: 300,
+        y: 120 + i * 150,
+        width: 130,
+        height: 70
+      });
+      i++;
+    });
     
     // Page nodes for second step
-    const secondStepPages = [...new Set(demoUserFlowData.flows.map(flow => flow.to))];
+    // Get unique destination pages without using Set
+    const allDestPages = demoUserFlowData.flows.map(flow => flow.to);
+    const secondStepPages = allDestPages.filter((page, index) => allDestPages.indexOf(page) === index);
     secondStepPages.forEach((page, i) => {
       // Skip if the page was already in the first step
       if (!nodes.some(node => node.id === `first_${page}`)) {
         nodes.push({
           id: `second_${page}`,
-          label: pageNames[page] || page,
+          label: pageNames[page as keyof typeof pageNames] || page,
           value: demoUserFlowData.flows.filter(flow => flow.to === page)
                  .reduce((sum, flow) => sum + flow.value, 0),
           x: 550,
@@ -156,22 +156,20 @@ export default function UserFlow() {
     const connections: FlowConnection[] = [];
     
     // Connections from entry to first step
-    for (const page in demoUserFlowData.entry) {
-      if (demoUserFlowData.entry.hasOwnProperty(page)) {
-        const targetNode = nodes.find(node => node.id === `first_${page}`);
-        if (targetNode) {
-          connections.push({
-            from: 'entry',
-            to: `first_${page}`,
-            value: demoUserFlowData.entry[page],
-            fromX: 200,
-            fromY: 300,
-            toX: targetNode.x,
-            toY: targetNode.y + targetNode.height / 2
-          });
-        }
+    Object.entries(demoUserFlowData.entry).forEach(([page, value]) => {
+      const targetNode = nodes.find(node => node.id === `first_${page}`);
+      if (targetNode) {
+        connections.push({
+          from: 'entry',
+          to: `first_${page}`,
+          value: value,
+          fromX: 200,
+          fromY: 300,
+          toX: targetNode.x,
+          toY: targetNode.y + targetNode.height / 2
+        });
       }
-    }
+    });
     
     // Connections between pages
     demoUserFlowData.flows.forEach(flow => {
@@ -197,25 +195,23 @@ export default function UserFlow() {
     });
     
     // Connections to exit
-    for (const page in demoUserFlowData.exits) {
-      if (demoUserFlowData.exits.hasOwnProperty(page)) {
-        const sourceNode = nodes.find(node => 
-          node.id === `first_${page}` || node.id === `second_${page}`
-        );
-        
-        if (sourceNode) {
-          connections.push({
-            from: sourceNode.id,
-            to: 'exit',
-            value: demoUserFlowData.exits[page],
-            fromX: sourceNode.x + sourceNode.width,
-            fromY: sourceNode.y + sourceNode.height / 2,
-            toX: 800,
-            toY: 300
-          });
-        }
+    Object.entries(demoUserFlowData.exits).forEach(([page, value]) => {
+      const sourceNode = nodes.find(node => 
+        node.id === `first_${page}` || node.id === `second_${page}`
+      );
+      
+      if (sourceNode) {
+        connections.push({
+          from: sourceNode.id,
+          to: 'exit',
+          value: value,
+          fromX: sourceNode.x + sourceNode.width,
+          fromY: sourceNode.y + sourceNode.height / 2,
+          toX: 800,
+          toY: 300
+        });
       }
-    }
+    });
     
     return connections;
   };
